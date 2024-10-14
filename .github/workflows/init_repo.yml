@@ -1,0 +1,21 @@
+name: Init Repository and Resolve Dynamic Template
+on:
+  - create
+  - workflow_dispatch # Sometimes the create event does not seem to be fired
+
+jobs:
+  init_repo:
+    name: Auto Init
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Init Repository
+        uses: fletort/init-repo-action@v1
+        with:
+          repository_deployment: ${{ vars.deployment_repository }}
+          token: ${{ secrets.INIT_TOKEN }}
+          testspace_token: ${{ secrets.TESTSPACE_TOKEN }}
+
+

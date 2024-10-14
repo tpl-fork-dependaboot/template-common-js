@@ -1,0 +1,132 @@
+name: Test
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - closed
+    branches:
+      - main
+      - develop
+  push:
+    branches:
+      - main
+      - develop
+#      - "releases/*"
+
+env:
+  BRANCH_NAME: ${{ github.head_ref || github.ref_name }} 
+
+jobs:
+  test-javascript:
+    name: Unit Tests
+    if: github.event_name != 'pull_request' || github.event.action != 'closed'
+    runs-on: ubuntu-latest
+    permissions:
+      checks: write
+      pull-requests: write
+      contents: write
+    steps:
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        id: setup-node
+        if: hashFiles('package-lock.json') != ''
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install Dependencies
+        id: npm-ci
+        if: hashFiles('package.json') != ''
+        run: npm ci
+
+      - name: Check Format
+        id: npm-format-check
+        if: hashFiles('package.json') != ''
+        run: npm run format:check
+
+      - name: Lint
+        id: npm-lint
+        if: hashFiles('package.json') != ''
+        run: npm run lint
+
+      - name: Test
+        id: npm-ci-test
+        if: hashFiles('package.json') != ''
+        run: npm run ci-test
+
+      # un peu doublon avec tout ce que fait le module suivant
+      - name: Publish Test Results in GitHub
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always() && hashFiles('test-results/**') != ''
+        with:
+          files: |
+            test-results/**/*.xml
+            test-results/**/*.trx
+            test-results/**/*.json
+
+      - name: Publish Tests and Coverage Results in Github
+        uses: ArtiomTr/jest-coverage-report-action@v2      
+        if: always() && hashFiles('coverage/**') != ''
+        with:
+          coverage-file: ./coverage/github_coverage.json
+          base-coverage-file: ./coverage/github_coverage.json
+          skip-step: all
+
+      - name: Publish Coverage Report to Coveralls.io
+        if: always() && hashFiles('coverage/**') != ''
+        uses: coverallsapp/github-action@v2
+
+      - name: Testspace client install & config
+        id: testspace_init
+        if: always() && hashFiles('test-results/**') != ''
+        uses: testspace-com/setup-testspace@v1
+        with:
+          domain: ${{github.repository_owner}}
+
+      - name: Testspace push test content
+        if: always() && (steps.testspace_init.outcome == 'success')
+        run: testspace "./test-results/*.xml"
+
+      - name: Move Report File To Publish Them to our Global CI Pages
+        if: always() && github.event_name == 'pull_request' &&  hashFiles('coverge/**') != '' && hashFiles('test-results/**') != ''
+        id: move
+        run: |
+          mkdir pages
+          mv ./coverage/lcov-report ./pages/coverage
+          mkdir pages/test
+          mv ./test-results/test-report.html ./pages/test/index.html
+          
+      - name: Keep Html Report In Our Global CI Pages
+        uses: peaceiris/actions-gh-pages@v4
+        if: always() && (steps.move.outcome == 'success')
+        with:
+          external_repository: ${{ vars.ci_report_repo_path }}
+          publish_branch: main
+          deploy_key: ${{ secrets.DEPLOY_CI_REPORT_KEY }}
+          publish_dir: ./pages
+          destination_dir: ${{ github.event.repository.name }}/${{ env.BRANCH_NAME }}
+
+  remove_test_report:
+    name: Remove Test Report
+    if: github.event_name == 'pull_request' && github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ vars.ci_report_repo_path }}
+          ssh-key: ${{ secrets.DEPLOY_CI_REPORT_KEY }}
+      - run: | # pour l'email, voir  https://github.com/orgs/community/discussions/40405
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
+          git config user.name "${{ github.actor }}" 
+          git rm -r ${{ github.event.repository.name }}/${{ env.BRANCH_NAME }}
+          git commit -am "pr from ${{ env.BRANCH_NAME }} closed: ${{ github.repository }}/pull/${{ github.event.number }}"
+          git push
