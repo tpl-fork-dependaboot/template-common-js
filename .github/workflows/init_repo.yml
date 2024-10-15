@@ -41,7 +41,7 @@ jobs:
             path=${dirpath%/*}
             newdirpath="$path/${lastdir#$}"
             echo "Rename directory ${dirpath} to ${newdirpath}"
-            cp -R "${dirpath}/*" "${newdirpath}"
+            cp -R "${dirpath}/." "${newdirpath}"
             if [[ -f ".fork/link.json" ]]; then
               cat .fork/link.json | jq '. + [{"type": "file", "remote": "${file}", "local": "${newfile}"}]' >> .fork/link.json.next
               mv .fork/link.json.next .fork/link.json
