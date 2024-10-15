@@ -9,3 +9,11 @@ updates:
     schedule:
       interval: daily
 
+  - package-ecosystem: npm
+    directory: /
+    target-branch: "develop"
+    labels:
+      - dependabot
+      - npm
+    schedule:
+      interval: daily

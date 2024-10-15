@@ -1,0 +1,125 @@
+name: Release
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - closed
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  check_future_version:
+    if: (github.event.action == 'opened') || (github.event.action == 'synchronize')
+    name: Check Future Release Version
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Check Version from Package File
+        id: get-version
+        run: |
+          # shellcheck disable=SC2016,SC2086
+          PACKAGE_VERSION=$(node -p -e '`${require("./package.json").version}`')
+          echo "PACKAGE_VERSION=$PACKAGE_VERSION" >> "$GITHUB_ENV"
+          if git show-ref --tags --verify --quiet "refs/tags/$PACKAGE_VERSION"; then
+            MSG="❌ package.json version $PACKAGE_VERSION is already used. Associated tag already exists."
+          else
+            MSG="✅ package.json version $PACKAGE_VERSION is not already used."
+          fi
+          echo "$MSG"
+          echo "COMMENT=$MSG" >> "$GITHUB_ENV"
+          
+      - name: Check Version of Release Branch
+        if:  startsWith(github.head_ref, 'releases/')
+        run: |
+          # shellcheck disable=SC2016,SC2086
+          BRANCH_VERSION=$(echo $GITHUB_HEAD_REF | sed 's/releases\///g')
+          echo "BRANCH_VERSION=$BRANCH_VERSION" >> "$GITHUB_ENV"
+          if git show-ref --tags --verify --quiet "refs/tags/$BRANCH_VERSION"; then
+            MSG1="❌ version from branch $BRANCH_VERSION is already used. Associated tag already exists."
+          else
+            MSG1="✅ version from branch $BRANCH_VERSION is not already used."
+          fi
+          echo "$MSG1"
+          if [[ "$BRANCH_VERSION" != "${{ env.PACKAGE_VERSION }}" ]]; then
+            MSG2="❌ package.json version ${{ env.PACKAGE_VERSION }} does not match branch version $BRANCH_VERSION"
+          else
+            MSG2="✅ package.json version ${{ env.PACKAGE_VERSION }} match the branch version $BRANCH_VERSION"
+          fi
+          echo "$MSG2"
+          # shellcheck disable=SC2028
+          echo "COMMENT=$COMMENT\n$MSG1\n$MSG2" >> "$GITHUB_ENV"  
+          
+      - name: Add PR Comment
+        uses: actions/github-script@v6
+        with:
+          script: |
+            // Get the existing comments.
+            const {data: comments} = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.number,
+            })
+  
+            // Find if comment was already made by the bot.                                                                                                    
+            const botComment = comments.find(comment => comment.body == "${{ env.COMMENT }}")
+            if (botComment) {
+              console.log("PR Comment already made")
+            } else {
+              console.log("Add PR Comment")
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.number,
+                body: `${{ env.COMMENT }}`
+              })
+            }
+  
+      - name: Fail PR if versions not matching
+        if: ${{ contains(env.COMMENT, '❌') }}
+        run: exit 1
+
+# RELEASE JOB
+  release:
+    if: (github.event.pull_request.merged == true)  && (github.event.action == 'closed')
+    runs-on: ubuntu-latest
+    name: Release
+    permissions:
+      contents: write
+    steps:
+    - name: Checkout
+      id: checkout
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.pull_request.merge_commit_sha }}
+        fetch-depth: '0'
+
+    - name: Get Version from Package File
+      id: get-version 
+      run: |
+        # shellcheck disable=SC2016,SC2086
+        node -p -e '`PACKAGE_VERSION=${require("./package.json").version}`' >> $GITHUB_ENV
+
+    - name: Create Tag
+      id: create-tag
+      uses: anothrNick/github-tag-action@1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        CUSTOM_TAG: ${{ env.PACKAGE_VERSION }}
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: ${{ steps.create-tag.outputs.new_tag }}
+        token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN_WORKFLOW }} 
+        # need specific token to can execute another worflow after: https://github.com/softprops/action-gh-release/issues/59
+        # ==> Fine-grained personal access tokens with Read and Write Access To Code and Workflow
+
