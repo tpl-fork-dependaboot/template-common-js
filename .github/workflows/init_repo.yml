@@ -3,19 +3,48 @@ on:
   - create
   - workflow_dispatch # Sometimes the create event does not seem to be fired
 
+
 jobs:
-  init_repo:
-    name: Auto Init
+  init_fork:
+    name: Init Dynamic Template Fork
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      pull-requests: write
     steps:
-      - name: Init Repository
-        uses: fletort/init-repo-action@v1
+    
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
+    
+      - name: Copy j2 file as normal file
+        run: |
+          mkdir -p .fork
+          touch .fork/link.json
+          find . -type f -name "*.j2" -print0 | while read -d $'\0' file;
+          do
+            newfile=${file%.j2}
+            echo "Rename file ${file} to ${newfile}"
+            cp "${file}" "${newfile}"
+            cat .fork/link.json | jq '. + [{"type": "file", "remote": "${file}", "local": "${newfile}"}]'' > .fork/link.json
+          done
+
+      - name: Copy Specific Directories
+        shell: bash
+        run: |
+          find . -type d -name "\$*" -print0 | while read -d $'\0' dirpath;
+          do
+            lastdir=${dirpath##*/}
+            path=${dirpath%/*}
+            newdirpath="$path/${lastdir#$}"
+            echo "Rename directory ${dirpath} to ${newdirpath}"
+            cp -R "${dirpath}" "${newdirpath}"
+            cat .fork/link.json | jq '. + [{"type": "dir", "remote": "${dirpath}", "local": "${newdirpath}"}]'' > .fork/link.json
+          done
+
+      - name: Commit & Push changes
+        uses: actions-js/push@master
         with:
-          repository_deployment: ${{ vars.deployment_repository }}
-          token: ${{ secrets.INIT_TOKEN }}
-          testspace_token: ${{ secrets.TESTSPACE_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          message: "Init Fork"
 
 
