@@ -38,7 +38,7 @@ jobs:
             newdirpath="$path/${lastdir#$}"
             echo "Rename directory ${dirpath} to ${newdirpath}"
             cp -R "${dirpath}" "${newdirpath}"
-            cat .fork/link.json | jq '. + [{"type": "dir", "remote": "${dirpath}", "local": "${newdirpath}"}]'' > .fork/link.json
+            cat .fork/link.json | jq '. + [{"type": "dir", "remote": "${dirpath}", "local": "${newdirpath}"}]' > .fork/link.json
           done
 
       - name: Commit & Push changes
