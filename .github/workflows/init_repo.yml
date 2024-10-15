@@ -26,11 +26,11 @@ jobs:
             echo "Rename file ${file} to ${newfile}"
             cp "${file}" "${newfile}"
             if [[ -f ".fork/link.json" ]]; then
-              cat .fork/link.json | jq '. + [{"type": "file", "remote": "${file}", "local": "${newfile}"}]' >> .fork/link.json.next
+              cat .fork/link.json | jq ". + [{\"type\": \"file\", \"remote\": \"${file}\", \"local\": \"${newfile}\"}]" >> .fork/link.json.next
               mv .fork/link.json.next .fork/link.json
             else
               mkdir -p .fork
-              echo '[{"type": "file", "remote": "${file}", "local": "${newfile}"}]' > .fork/link.json
+              echo "[{\"type\": \"file\", \"remote\": \"${file}\", \"local\": \"${newfile}\"}]" > .fork/link.json
             fi
           done
 
@@ -45,11 +45,11 @@ jobs:
             echo "Rename directory ${dirpath} to ${newdirpath}"
             cp -R "${dirpath}/." "${newdirpath}"
             if [[ -f ".fork/link.json" ]]; then
-              cat .fork/link.json | jq '. + [{"type": "file", "remote": "${file}", "local": "${newfile}"}]' >> .fork/link.json.next
+              cat .fork/link.json | jq ". + [{\"type\": \"dir\", \"remote\": \"${dirpath}\", \"local\": \"${newdirpath}\"}]" >> .fork/link.json.next
               mv .fork/link.json.next .fork/link.json
             else
               mkdir -p .fork
-              echo '[{"type": "file", "remote": "${file}", "local": "${newfile}"}]' > .fork/link.json
+              echo "[{\"type\": \"dir\", \"remote\": \"${dirpath}\", \"local\": \"${newdirpath}\"}]" > .fork/link.json
             fi
           done
 
