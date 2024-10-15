@@ -18,14 +18,18 @@ jobs:
     
       - name: Copy j2 file as normal file
         run: |
-          mkdir -p .fork
-          touch .fork/link.json
           find . -type f -name "*.j2" -print0 | while read -d $'\0' file;
           do
             newfile=${file%.j2}
             echo "Rename file ${file} to ${newfile}"
             cp "${file}" "${newfile}"
-            cat .fork/link.json | jq '. + [{"type": "file", "remote": "${file}", "local": "${newfile}"}]' > .fork/link.json
+            if [[ -f ".fork/link.json" ]]; then
+              cat .fork/link.json | jq '. + [{"type": "file", "remote": "${file}", "local": "${newfile}"}]' >> .fork/link.json.next
+              mv .fork/link.json.next .fork/link.json
+            else
+              mkdir -p .fork
+              echo '[{"type": "file", "remote": "${file}", "local": "${newfile}"}]' > .fork/link.json
+            fi
           done
 
       - name: Copy Specific Directories
@@ -37,8 +41,14 @@ jobs:
             path=${dirpath%/*}
             newdirpath="$path/${lastdir#$}"
             echo "Rename directory ${dirpath} to ${newdirpath}"
-            cp -R "${dirpath}" "${newdirpath}"
-            cat .fork/link.json | jq '. + [{"type": "dir", "remote": "${dirpath}", "local": "${newdirpath}"}]' > .fork/link.json
+            cp -R "${dirpath}/" "${newdirpath}"
+            if [[ -f ".fork/link.json" ]]; then
+              cat .fork/link.json | jq '. + [{"type": "file", "remote": "${file}", "local": "${newfile}"}]' >> .fork/link.json.next
+              mv .fork/link.json.next .fork/link.json
+            else
+              mkdir -p .fork
+              echo '[{"type": "file", "remote": "${file}", "local": "${newfile}"}]' > .fork/link.json
+            fi
           done
 
       - name: Commit & Push changes
@@ -46,5 +56,3 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           message: "Init Fork"
-
-
