@@ -25,7 +25,7 @@ jobs:
             newfile=${file%.j2}
             echo "Rename file ${file} to ${newfile}"
             cp "${file}" "${newfile}"
-            cat .fork/link.json | jq '. + [{"type": "file", "remote": "${file}", "local": "${newfile}"}]'' > .fork/link.json
+            cat .fork/link.json | jq '. + [{"type": "file", "remote": "${file}", "local": "${newfile}"}]' > .fork/link.json
           done
 
       - name: Copy Specific Directories
