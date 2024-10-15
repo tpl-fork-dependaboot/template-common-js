@@ -10,11 +10,13 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    steps:
+    steps: 
     
       - name: Checkout
         id: checkout
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PAT }}
     
       - name: Copy j2 file as normal file
         run: |
@@ -56,3 +58,4 @@ jobs:
         with:
           github_token: ${{ secrets.PAT }}
           message: "Init Fork"
+        
