@@ -23,5 +23,35 @@
     "type": "file",
     "remote": "${file}",
     "local": "${newfile}"
+  },
+  {
+    "type": "file",
+    "remote": "./package.json.j2",
+    "local": "./package.json"
+  },
+  {
+    "type": "file",
+    "remote": "./.github/DevSecOps.md.j2",
+    "local": "./.github/DevSecOps.md"
+  },
+  {
+    "type": "file",
+    "remote": "./$.github/DevSecOps.md.j2",
+    "local": "./$.github/DevSecOps.md"
+  },
+  {
+    "type": "file",
+    "remote": "./package-lock.json.j2",
+    "local": "./package-lock.json"
+  },
+  {
+    "type": "file",
+    "remote": "./README.md.j2",
+    "local": "./README.md"
+  },
+  {
+    "type": "dir",
+    "remote": "./$.github",
+    "local": "./.github"
   }
 ]
