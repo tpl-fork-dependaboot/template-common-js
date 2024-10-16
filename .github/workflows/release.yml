@@ -59,7 +59,7 @@ jobs:
           echo "COMMENT=$COMMENT\n$MSG1\n$MSG2" >> "$GITHUB_ENV"  
           
       - name: Add PR Comment
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             // Get the existing comments.
