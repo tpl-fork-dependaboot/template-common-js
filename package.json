@@ -72,7 +72,7 @@
     "replace": "^1.2.2"
   },
   "devDependencies": {
-    "@babel/eslint-parser": "^7.22.15",
+    "@babel/eslint-parser": "^7.25.8",
     "@babel/preset-env": "^7.22.20",
     "@vercel/ncc": "^0.38.0",
     "coverage-badges-cli": "^2.0.0",
