@@ -1,7 +1,7 @@
 {
-  "name": "{{ environ('JS_PROJECT_NAME') or '' }}",
-  "version": "{{ environ('JS_INITIAL_VERSION') or '0.0.1' }}",
-  "description": "{{ environ('JS_PROJECT_DESCRIPTION') or '' }}",
+  "name": "{{ JS_PROJECT_NAME or '' }}",
+  "version": "{{ JS_INITIAL_VERSION or '0.0.1' }}",
+  "description": "{{ JS_PROJECT_DESCRIPTION or '' }}",
   "type": "module",
   "exports": {
     ".": "./dist/index.js"

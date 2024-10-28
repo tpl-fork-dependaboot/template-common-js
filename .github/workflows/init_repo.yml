@@ -14,8 +14,11 @@ jobs:
       - name: Init Repository
         uses: fletort/init-repo-action@v1
         with:
-          repository_deployment: ${{ vars.deployment_repository }}
+          repository_deployment: ${{ vars.tpl_deployment_repository }}
           token: ${{ secrets.INIT_TOKEN }}
+          testspace_link_enable: ${{ vars.tpl_testspace_link_enable || true }}
           testspace_token: ${{ secrets.TESTSPACE_TOKEN }}
+          delete_workflow: ${{ vars.tpl_delete_workflow || true }}
+          j2_keep_template: ${{ vars.tpl_j2_keep_template || false }}
 
 
