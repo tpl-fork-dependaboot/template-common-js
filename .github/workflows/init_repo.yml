@@ -15,10 +15,21 @@ jobs:
         uses: fletort/init-repo-action@v1
         with:
           repository_deployment: ${{ vars.tpl_deployment_repository }}
-          token: ${{ secrets.INIT_TOKEN }}
+          token: ${{ secrets.INIT_TOKEN || secrets.GITHUB_TOKEN }}
           testspace_link_enable: ${{ vars.tpl_testspace_link_enable || true }}
           testspace_token: ${{ secrets.TESTSPACE_TOKEN }}
           delete_workflow: ${{ vars.tpl_delete_workflow || true }}
           j2_keep_template: ${{ vars.tpl_j2_keep_template || false }}
-
-
+          j2_data_file: ${{ vars.tpl_j2_data_file }}
+          j2_data_format: ${{ vars.tpl_j2_data_format }}
+          j2_data_url: ${{ vars.tpl_j2_data_url }}
+          j2_data_url_format: ${{ vars.tpl_j2_data_url_format }}
+          j2_undefined_behaviour: ${{ vars.tpl_j2_undefined_behaviour }}
+          branches: ${{ vars.tpl_branches }}
+          commit-message: ${{ vars.tpl_commit-message }}
+          branch-no-pr: ${{ vars.tpl_branch-no-pr }}
+          pr-created: ${{ vars.tpl_pr-created }}
+          pr-branch: ${{ vars.tpl_pr-branch }}
+          pr-base-branch: ${{ vars.tpl_pr-base-branch }}
+          pr-title: ${{ vars.tpl_pr-title }}
+          pr-body: ${{ vars.tpl_pr-body }}
