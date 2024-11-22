@@ -25,11 +25,11 @@ jobs:
           j2_data_url: ${{ vars.tpl_j2_data_url }}
           j2_data_url_format: ${{ vars.tpl_j2_data_url_format }}
           j2_undefined_behaviour: ${{ vars.tpl_j2_undefined_behaviour }}
+          base_branch: ${{ vars.tpl_base_branch }}
+          branch-before: ${{ vars.tpl_branch_before}}
           branches: ${{ vars.tpl_branches }}
-          commit-message: ${{ vars.tpl_commit-message }}
-          branch-no-pr: ${{ vars.tpl_branch-no-pr }}
-          pr-created: ${{ vars.tpl_pr-created }}
-          pr-branch: ${{ vars.tpl_pr-branch }}
-          pr-base-branch: ${{ vars.tpl_pr-base-branch }}
-          pr-title: ${{ vars.tpl_pr-title }}
-          pr-body: ${{ vars.tpl_pr-body }}
+          commit-message: ${{ vars.tpl_commit_message }}
+          commit-branch: ${{ vars.tpl_commit_branch }}
+          pr-created: ${{ vars.tpl_pr_created }}
+          pr-title: ${{ vars.tpl_pr_title }}
+          pr-body: ${{ vars.tpl_pr_body }}
