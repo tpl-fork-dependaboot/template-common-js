@@ -16,10 +16,10 @@ jobs:
         with:
           repository_deployment: ${{ vars.tpl_deployment_repository }}
           token: ${{ secrets.INIT_TOKEN || secrets.GITHUB_TOKEN }}
-          testspace_link_enable: ${{ vars.tpl_testspace_link_enable || true }}
+          testspace_link_enable: ${{ vars.tpl_testspace_link_enable }}
           testspace_token: ${{ secrets.TESTSPACE_TOKEN }}
-          delete_workflow: ${{ vars.tpl_delete_workflow || true }}
-          j2_keep_template: ${{ vars.tpl_j2_keep_template || false }}
+          delete_workflow: ${{ vars.tpl_delete_workflow }}
+          j2_keep_template: ${{ vars.tpl_j2_keep_template }}
           j2_data_file: ${{ vars.tpl_j2_data_file }}
           j2_data_format: ${{ vars.tpl_j2_data_format }}
           j2_data_url: ${{ vars.tpl_j2_data_url }}
